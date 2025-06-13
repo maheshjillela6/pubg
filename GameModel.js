@@ -10,7 +10,7 @@ class GameModel {
         mapNames: ['map1_theme1', 'map2_theme1', 'map3_theme1', 'map4_theme1', 'map5_theme1'],
         mapAtlas: 'maps_theme1.json',
         symbolAtlas: 'assets_theme1.json',
-        spineAsset: 'a_theme1.json'
+        spineAsset: 'animations/a_theme1.json'
       },
       theme2: {
         mapNames: ['map1_theme2', 'map2_theme2', 'map3_theme2', 'map4_theme2', 'map5_theme2'],

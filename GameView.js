@@ -66,8 +66,8 @@ class GameView {
     spinButton.beginFill(0x00ff00);
     spinButton.drawRoundedRect(0, 0, 100, 50, 10);
     spinButton.endFill();
-    spinButton.x = 400; // Centered below grid
-    spinButton.y = 480; // Below grid (grid ends at y=460)
+    spinButton.x = 10; // Centered below grid
+    spinButton.y = 510; // Below grid (grid ends at y=460)
     spinButton.interactive = true;
     spinButton.buttonMode = true;
     spinButton.on('pointerdown', spinCallback);
@@ -96,8 +96,8 @@ class GameView {
       this.themeSelector.appendChild(option);
     });
     this.themeSelector.style.position = 'absolute';
-    this.themeSelector.style.left = `${this.app.view.offsetLeft + 510}px`; // Beside spin button
-    this.themeSelector.style.top = `${this.app.view.offsetTop + 480}px`; // Below grid
+    this.themeSelector.style.left = `${this.app.view.offsetLeft + 810}px`; // Beside spin button
+    this.themeSelector.style.top = `${this.app.view.offsetTop + 510}px`; // Below grid
     this.themeSelector.style.width = '150px';
     this.themeSelector.style.height = '40px';
     this.themeSelector.style.fontFamily = 'Arial, sans-serif';
