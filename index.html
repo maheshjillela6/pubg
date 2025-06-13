@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PUBG Slot Game - Theme Selection</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #1a1a1a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+    #gameCanvas {
+      border: 2px solid #4a4a4a;
+    }
+    .symbol-overlay {
+      position: absolute;
+      pointer-events: none;
+    }
+    #themeSelector {
+      position: absolute;
+      top: 100px;
+      left: 850px;
+      width: 150px;
+      padding: 10px;
+      font-size: 16px;
+      background: #333;
+      color: #fff;
+      border: 2px solid #4a4a4a;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #themeSelector:focus {
+      outline: none;
+      border-color: #FF5722;
+    }
+  </style>
+</head>
+<body>
+  <select id="themeSelector">
+    <option value="theme1">Theme 1</option>
+    <option value="theme2">Theme 2</option>
+    <option value="theme3">Theme 3</option>
+    <option value="theme4">Theme 4</option>
+  </select>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pixi-spine@4.0.4/dist/pixi-spine.js"></script>
+  <script src="GameModel.js"></script>
+  <script src="ReelModel.js"></script>
+  <script src="GameView.js"></script>
+  <script src="ReelView.js"></script>
+  <script src="GameController.js"></script>
+  <script>
+    'use strict';
+
+    // Initialize and run the game
+    const gameController = new GameController();
+    gameController.init();
+  </script>
+</body>
+</html>

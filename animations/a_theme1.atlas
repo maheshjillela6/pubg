@@ -1,0 +1,27 @@
+
+a_theme1.png
+size: 1950, 1028
+format: RGBA8888
+filter: Linear, Linear
+repeat: none
+a1
+  rotate: false
+  xy: 1540, 414
+  size: 408, 612
+  orig: 408, 612
+  offset: 0, 0
+  index: -1
+bullet
+  rotate: false
+  xy: 2, 2
+  size: 1536, 1024
+  orig: 1536, 1024
+  offset: 0, 0
+  index: -1
+fire
+  rotate: false
+  xy: 1540, 309
+  size: 111, 103
+  orig: 111, 103
+  offset: 0, 0
+  index: -1
