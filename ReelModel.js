@@ -14,6 +14,7 @@ class ReelModel {
     this.spinStartY = 0;
     this.spinStartTime = 0;
     this.spinDuration = 0;
+    this.onStopCallback = null;
     this.reelView = new ReelView(mapTextures, symbolTextures, spineData, symbolConfig, mapDimensions, mapNames, symbolNames);
   }
 
@@ -21,10 +22,10 @@ class ReelModel {
     this.reelView.setup();
   }
 
-  spin(targetIndex, duration) {
+  spin(targetIndex, duration, onStopCallback) {
     this.spinStartY = this.currentY;
     this.targetIndex = targetIndex;
-    // Calculate targetY based on cumulative heights up to targetIndex
+    this.onStopCallback = onStopCallback;
     let targetY = 0;
     for (let i = 0; i < targetIndex; i++) {
       targetY += this.mapDimensions[i]?.height || 600;
@@ -37,12 +38,10 @@ class ReelModel {
       const scale = atlasAspect > canvasAspect ? 1000 / atlasWidth : 600 / atlasHeight;
       return sum + atlasHeight * scale;
     }, 0);
-    // Add extra cycles to maintain speed
-    const baseDuration = 1200; // Original duration
-    const extraCycles = Math.floor(duration / baseDuration); // 1 cycle for 2000ms
+    const baseDuration = 1200;
+    const extraCycles = Math.floor(duration / baseDuration);
     targetY += totalHeight * extraCycles;
     this.targetY = targetY;
-    // Adjust for upward movement (bottom-up)
     if (this.targetY > this.spinStartY) {
       this.targetY -= totalHeight * Math.ceil((this.targetY - this.spinStartY) / totalHeight);
     }
@@ -67,6 +66,9 @@ class ReelModel {
     if (this.currentY < 0) this.currentY += totalHeight;
     console.log(`Stopped at currentY=${this.currentY}, targetIndex=${this.targetIndex}`);
     this.reelView.updatePosition(this.currentY, this.targetIndex);
+    if (this.onStopCallback) {
+      this.onStopCallback();
+    }
   }
 
   update() {
@@ -77,9 +79,8 @@ class ReelModel {
       this.stop();
       return;
     }
-    // Smooth interpolation with quintic ease-in-out
     const t = Math.min(elapsed / this.spinDuration, 1);
-    const ease = t * t * t * (t * (t * 6 - 15) + 10); // Quintic ease-in-out
+    const ease = t * t * t * (t * (t * 6 - 15) + 10);
     this.currentY = this.spinStartY + (this.targetY - this.spinStartY) * ease;
     const totalHeight = this.mapDimensions.reduce((sum, dim) => {
       const atlasWidth = dim?.width || 600;

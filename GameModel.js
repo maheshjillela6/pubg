@@ -32,13 +32,13 @@ class GameModel {
       }
     };
     this.symbolNames = ['a', 'b', 'c', 'd', 'e', 'f'];
-    this.spinMapIndices = [0, 1, 2];
-    this.spinDurationMs = 1500; // Extended for smoother stopping
+    this.spinMapIndices = [0, 1, 2, 4];
+    this.spinDurationMs = 2000; // Extended for smoother stopping
     this.currentMapIndex = 0;
     this.symbolConfig = {
-      a: { width: 100, height: 100 },
+      a: { width: 80, height: 80 },
       b: { width: 80, height: 80 },
-      c: { width: 90, height: 90 },
+      c: { width: 180, height: 180 },
       d: { width: 70, height: 70 },
       e: { width: 85, height: 85 },
       f: { width: 75, height: 75 }

@@ -12,39 +12,33 @@ class ReelView {
     this.mapSprites = [];
     this.symbolSprites = [];
     this.currentSymbols = [];
-    this.canvasWidth = 1000;
-    this.canvasHeight = 600;
+    this.canvasWidth = 1200;
+    this.canvasHeight = 800;
     // Predefined reelset with 5x4 matrices
     this.reelset = [
       [
-        ['a', 'b', 'c', 'd', 'e'],
-        ['f', 'a', 'b', 'c', 'd'],
-        ['e', 'f', 'a', 'b', 'c'],
-        ['d', 'e', 'f', 'a', 'b']
+        ['a', 'b1', 'b4', 'b', 'e'],
+        ['f', 'a1', 'b2', 'c', 'd'],
+        ['e', 'f', 'a', 'b3', 'c1'],
+        ['d', 'e', 'f', 'c', 'b']
       ],
       [
-        ['c', 'd', 'e', 'f', 'a'],
-        ['b', 'c', 'd', 'e', 'f'],
-        ['a', 'b', 'c', 'd', 'e'],
-        ['f', 'a', 'b', 'c', 'd']
+        ['a', 'b1', 'b4', 'b', 'e'],
+        ['f', 'a1', 'b2', 'c', 'd'],
+        ['e', 'f', 'a', 'b3', 'c1'],
+        ['d', 'e', 'f', 'c', 'b']
       ],
       [
-        ['e', 'f', 'a', 'b', 'c'],
-        ['d', 'e', 'f', 'a', 'b'],
-        ['c', 'd', 'e', 'f', 'a'],
-        ['b', 'c', 'd', 'e', 'f']
+        ['a', 'b1', 'b4', 'b', 'e'],
+        ['f', 'a1', 'b2', 'c', 'd'],
+        ['e', 'f', 'a', 'b3', 'c1'],
+        ['d', 'e', 'f', 'c', 'b']
       ],
       [
-        ['a', 'b', 'c', 'd', 'e'],
-        ['f', 'a', 'b', 'c', 'd'],
-        ['e', 'f', 'a', 'b', 'c'],
-        ['d', 'e', 'f', 'a', 'b']
-      ],
-      [
-        ['c', 'd', 'e', 'f', 'a'],
-        ['b', 'c', 'd', 'e', 'f'],
-        ['a', 'b', 'c', 'd', 'e'],
-        ['f', 'a', 'b', 'c', 'd']
+        ['a', 'b1', 'b4', 'b', 'e'],
+        ['f', 'a1', 'b2', 'c', 'd'],
+        ['e', 'f', 'a', 'b3', 'c1'],
+        ['d', 'e', 'f', 'c', 'b']
       ]
     ];
   }
@@ -164,8 +158,8 @@ class ReelView {
         const symbol = symbols[row][col];
         const sprite = this.createSymbolSprite(symbol);
         if (sprite) {
-          sprite.x = 150 + col * 120;
-          sprite.y = 100 + row * 120;
+          sprite.x = 300 + col * 120;
+          sprite.y = 260 + row * 120;
           if (sprite instanceof PIXI.Sprite) {
             sprite.anchor.set(0.5);
           }

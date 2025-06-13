@@ -1,8 +1,8 @@
 class GameView {
   constructor() {
     this.app = new PIXI.Application({
-      width: 1000,
-      height: 600,
+      width: 1200,
+      height: 800,
       backgroundColor: 0x000000
     });
     this.reelViews = [];
@@ -67,7 +67,7 @@ class GameView {
     spinButton.drawRoundedRect(0, 0, 100, 50, 10);
     spinButton.endFill();
     spinButton.x = 10; // Centered below grid
-    spinButton.y = 510; // Below grid (grid ends at y=460)
+    spinButton.y = 610; // Below grid (grid ends at y=460)
     spinButton.interactive = true;
     spinButton.buttonMode = true;
     spinButton.on('pointerdown', spinCallback);
@@ -96,8 +96,8 @@ class GameView {
       this.themeSelector.appendChild(option);
     });
     this.themeSelector.style.position = 'absolute';
-    this.themeSelector.style.left = `${this.app.view.offsetLeft + 810}px`; // Beside spin button
-    this.themeSelector.style.top = `${this.app.view.offsetTop + 510}px`; // Below grid
+    this.themeSelector.style.left = `${this.app.view.offsetLeft + 10}px`; // Beside spin button
+    this.themeSelector.style.top = `${this.app.view.offsetTop + 550}px`; // Below grid
     this.themeSelector.style.width = '150px';
     this.themeSelector.style.height = '40px';
     this.themeSelector.style.fontFamily = 'Arial, sans-serif';
