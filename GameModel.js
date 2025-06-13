@@ -2,7 +2,7 @@ class GameModel {
   constructor() {
     this.reels = [];
     this.mapTextures = {};
-    this.mapDimensions = {}; // Store width and height per theme
+    this.mapDimensions = {};
     this.symbolTextures = {};
     this.spineData = {};
     this.themes = {
@@ -33,7 +33,7 @@ class GameModel {
     };
     this.symbolNames = ['a', 'b', 'c', 'd', 'e', 'f'];
     this.spinMapIndices = [0, 1, 2];
-    this.spinDurationMs = 1000;
+    this.spinDurationMs = 1500; // Extended for smoother stopping
     this.currentMapIndex = 0;
     this.symbolConfig = {
       a: { width: 100, height: 100 },
@@ -167,7 +167,7 @@ class GameModel {
   }
 
   getNextMapIndex() {
-    this.currentMapIndex = (this.currentMapIndex + 1) % this.spinMapIndices.length;
+    this.currentMapIndex = Math.round((this.currentMapIndex + 1) % this.spinMapIndices.length);
     return this.spinMapIndices[this.currentMapIndex];
   }
 }

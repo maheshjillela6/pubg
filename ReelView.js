@@ -12,6 +12,8 @@ class ReelView {
     this.mapSprites = [];
     this.symbolSprites = [];
     this.currentSymbols = [];
+    this.canvasWidth = 1000;
+    this.canvasHeight = 600;
     // Predefined reelset with 5x4 matrices
     this.reelset = [
       [
@@ -54,10 +56,11 @@ class ReelView {
     }
     this.mapSprites = [];
     this.mapContainer.removeChildren();
-    // Create enough sprites to cover the canvas height (600) plus buffer
-    const maxHeight = Math.max(...this.mapDimensions.map(dim => dim?.height || 600));
-    const numSprites = Math.ceil(600 / maxHeight) + 2;
-    let cumulativeY = -maxHeight;
+    // Scale maps to fit 1000x600 canvas, preserving aspect ratio
+    const canvasAspect = this.canvasWidth / this.canvasHeight; // 1000/600 = 1.667
+    const minHeight = Math.min(...this.mapDimensions.map(dim => dim?.height || 600));
+    const numSprites = Math.ceil(this.canvasHeight / minHeight) + 4; // Increased for smoother cycling
+    let cumulativeY = -(Math.max(...this.mapDimensions.map(dim => dim?.height || 600)));
     for (let i = -numSprites; i <= numSprites; i++) {
       const textureIndex = (i + this.mapTextures.length) % this.mapTextures.length;
       if (!this.mapTextures[textureIndex]) {
@@ -65,15 +68,28 @@ class ReelView {
         continue;
       }
       const sprite = new PIXI.Sprite(this.mapTextures[textureIndex]);
+      const atlasWidth = this.mapDimensions[textureIndex]?.width || 600;
+      const atlasHeight = this.mapDimensions[textureIndex]?.height || 600;
+      const atlasAspect = atlasWidth / atlasHeight;
+      let scale;
+      if (atlasAspect > canvasAspect) {
+        scale = this.canvasWidth / atlasWidth;
+      } else {
+        scale = this.canvasHeight / atlasHeight;
+      }
+      sprite.width = atlasWidth * scale;
+      sprite.height = atlasHeight * scale;
+      sprite.x = (this.canvasWidth - sprite.width) / 2;
       sprite.y = cumulativeY;
-      sprite.width = this.mapDimensions[textureIndex]?.width || 600;
-      sprite.height = this.mapDimensions[textureIndex]?.height || 600;
       sprite.anchor.set(0, 0);
       this.mapSprites.push(sprite);
       this.mapContainer.addChild(sprite);
-      console.log(`Setup map sprite ${i} at y=${sprite.y}, width=${sprite.width}, height=${sprite.height}, texture=${this.mapNames[textureIndex]}`);
-      cumulativeY += this.mapDimensions[textureIndex]?.height || 600;
+      console.log(`Setup map sprite ${i} at x=${sprite.x}, y=${sprite.y}, width=${sprite.width}, height=${sprite.height}, texture=${this.mapNames[textureIndex]}`);
+      cumulativeY += sprite.height;
     }
+    this.mapContainer.x = 0;
+    this.mapContainer.y = 0;
+    console.log(`Map container setup at x=${this.mapContainer.x}, y=${this.mapContainer.y}`);
 
     // Initialize 5x4 grid with empty symbols
     for (let row = 0; row < 4; row++) {
@@ -104,8 +120,8 @@ class ReelView {
           const scaleX = config.width / (bounds.width || config.width);
           const scaleY = config.height / (bounds.height || config.height);
           const scale = Math.min(scaleX, scaleY);
-          sprite.scale.set(scale);
-          sprite.position.set(0, 0);
+          spine.scale.set(scale);
+          spine.position.set(0, 0);
           console.log(`Created Spine animation for symbol: ${symbol}, animation: ${animationName}, size: ${config.width}x${config.height}, scale: ${scale}`);
           return spine;
         } catch (error) {
@@ -114,6 +130,7 @@ class ReelView {
       }
     }
     if (this.symbolTextures[symbol]) {
+      console.log('symbol Name : ' + symbol);
       const sprite = new PIXI.Sprite(this.symbolTextures[symbol]);
       sprite.width = config.width;
       sprite.height = config.height;
@@ -165,19 +182,36 @@ class ReelView {
       console.error('No map textures or dimensions available for updatePosition');
       return;
     }
-    const totalHeight = this.mapDimensions.reduce((sum, dim) => sum + (dim?.height || 600), 0);
+    const canvasAspect = this.canvasWidth / this.canvasHeight;
+    const totalHeight = this.mapDimensions.reduce((sum, dim) => {
+      const atlasWidth = dim?.width || 600;
+      const atlasHeight = dim?.height || 600;
+      const atlasAspect = atlasWidth / atlasHeight;
+      const scale = atlasAspect > canvasAspect ? this.canvasWidth / atlasWidth : this.canvasHeight / atlasHeight;
+      return sum + atlasHeight * scale;
+    }, 0);
     const offsetY = currentY % totalHeight;
 
     if (targetIndex >= 0) {
-      // Stopped: Show only the target map
+      // Stopped: Show only the target map, scaled to fit canvas
       this.mapSprites.forEach((sprite, index) => {
         if (index === 0) {
           sprite.texture = this.mapTextures[targetIndex] || PIXI.Texture.EMPTY;
-          sprite.width = this.mapDimensions[targetIndex]?.width || 600;
-          sprite.height = this.mapDimensions[targetIndex]?.height || 600;
-          sprite.y = (600 - sprite.height) / 2; // Center vertically
+          const atlasWidth = this.mapDimensions[targetIndex]?.width || 600;
+          const atlasHeight = this.mapDimensions[targetIndex]?.height || 600;
+          const atlasAspect = atlasWidth / atlasHeight;
+          let scale;
+          if (atlasAspect > canvasAspect) {
+            scale = this.canvasWidth / atlasWidth;
+          } else {
+            scale = this.canvasHeight / atlasHeight;
+          }
+          sprite.width = atlasWidth * scale;
+          sprite.height = atlasHeight * scale;
+          sprite.x = (this.canvasWidth - sprite.width) / 2;
+          sprite.y = (this.canvasHeight - sprite.height) / 2;
           sprite.visible = true;
-          console.log(`Stopped on map: texture=${this.mapNames[targetIndex]}, y=${sprite.y}, width=${sprite.width}, height=${sprite.height}`);
+          console.log(`Stopped on map: texture=${this.mapNames[targetIndex]}, x=${sprite.x}, y=${sprite.y}, width=${sprite.width}, height=${sprite.height}`);
         } else {
           sprite.visible = false;
         }
@@ -193,12 +227,22 @@ class ReelView {
           return;
         }
         sprite.texture = this.mapTextures[textureIndex];
-        sprite.width = this.mapDimensions[textureIndex]?.width || 600;
-        sprite.height = this.mapDimensions[textureIndex]?.height || 600;
+        const atlasWidth = this.mapDimensions[textureIndex]?.width || 600;
+        const atlasHeight = this.mapDimensions[textureIndex]?.height || 600;
+        const atlasAspect = atlasWidth / atlasHeight;
+        let scale;
+        if (atlasAspect > canvasAspect) {
+          scale = this.canvasWidth / atlasWidth;
+        } else {
+          scale = this.canvasHeight / atlasHeight;
+        }
+        sprite.width = atlasWidth * scale;
+        sprite.height = atlasHeight * scale;
+        sprite.x = (this.canvasWidth - sprite.width) / 2;
         sprite.y = cumulativeY;
         sprite.visible = true;
-        console.log(`Spinning map: sprite=${index}, texture=${this.mapNames[textureIndex]}, y=${sprite.y}, width=${sprite.width}, height=${sprite.height}`);
-        cumulativeY += this.mapDimensions[textureIndex]?.height || 600;
+        console.log(`Spinning map: sprite=${index}, texture=${this.mapNames[textureIndex]}, x=${sprite.x}, y=${sprite.y}, width=${sprite.width}, height=${sprite.height}`);
+        cumulativeY += sprite.height;
       });
     }
   }
