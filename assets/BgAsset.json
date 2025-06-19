@@ -1,0 +1,20 @@
+{"frames": {
+
+"BgAsset":
+{
+	"frame": {"x":0,"y":0,"w":1184,"h":664},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1184,"h":664},
+	"sourceSize": {"w":1184,"h":664}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.1",
+	"image": "BgAsset.png",
+	"format": "RGBA8888",
+	"size": {"w":1184,"h":664},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:77cdf15b66a0448a3e3f2ad2ae776d44:3c7f5faf0728c362b51841067556416b:594e5fb19bce6fecd7aa96959defb00c$"
+}
+}

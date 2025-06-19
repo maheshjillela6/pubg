@@ -1,5 +1,5 @@
 class ReelModel {
-  constructor(mapTextures, symbolTextures, spineData, symbolConfig, mapDimensions, mapNames, symbolNames) {
+  constructor(mapTextures, symbolTextures, spineData, symbolConfig, mapDimensions, mapNames, symbolNames, reelset) {
     this.mapTextures = mapTextures;
     this.symbolTextures = symbolTextures;
     this.spineData = spineData;
@@ -7,108 +7,69 @@ class ReelModel {
     this.mapDimensions = mapDimensions;
     this.mapNames = mapNames;
     this.symbolNames = symbolNames;
-    this.velocity = 0;
-    this.currentY = 0;
-    this.targetY = 0;
-    this.targetIndex = 0;
-    this.spinStartY = 0;
-    this.spinStartTime = 0;
-    this.spinDuration = 0;
-    this.onStopCallback = null;
-    this.reelView = new ReelView(mapTextures, symbolTextures, spineData, symbolConfig, mapDimensions, mapNames, symbolNames);
+    this.reelset = reelset;
+   // this.animateCameraMove = this.animateCameraMove.bind(this);
+    this.reelView = new ReelView(
+      mapTextures,
+      symbolTextures,
+      spineData,
+      symbolConfig,
+      mapDimensions,
+      mapNames,
+      symbolNames,
+      reelset
+    );
   }
-
+ 
   setup() {
     this.reelView.setup();
   }
-
+ 
   spin(targetIndex, duration, onStopCallback) {
-    this.spinStartY = this.currentY;
-    this.targetIndex = targetIndex;
-    this.onStopCallback = onStopCallback;
-    let targetY = 0;
-    for (let i = 0; i < targetIndex; i++) {
-      targetY += this.mapDimensions[i]?.height || 600;
-    }
-    const totalHeight = this.mapDimensions.reduce((sum, dim) => {
-      const atlasWidth = dim?.width || 600;
-      const atlasHeight = dim?.height || 600;
-      const atlasAspect = atlasWidth / atlasHeight;
-      const canvasAspect = 1000 / 600;
-      const scale = atlasAspect > canvasAspect ? 1000 / atlasWidth : 600 / atlasHeight;
-      return sum + atlasHeight * scale;
-    }, 0);
-    const baseDuration = 1200;
-    const extraCycles = Math.floor(duration / baseDuration);
-    targetY += totalHeight * extraCycles;
-    this.targetY = targetY;
-    if (this.targetY > this.spinStartY) {
-      this.targetY -= totalHeight * Math.ceil((this.targetY - this.spinStartY) / totalHeight);
-    }
-    this.spinDuration = duration;
-    this.spinStartTime = performance.now();
-    this.velocity = (this.targetY - this.spinStartY) / duration;
-    console.log(`Spinning bottom-up: startY=${this.spinStartY}, targetY=${this.targetY}, targetIndex=${targetIndex}, velocity=${this.velocity}, extraCycles=${extraCycles}`);
+    this.reelView.startScrollToMap(targetIndex, duration);
     this.reelView.selectRandomSymbols();
-  }
+    this.onStopCallback = onStopCallback;
 
+    this.spinStartTime = performance.now();
+
+    PIXI.Ticker.shared.add(this.animateCameraMove);
+   
+    // Call stop callback after animation completes
+    setTimeout(() => {
+      if (this.onStopCallback) {
+        this.onStopCallback();
+      }
+    }, duration);
+
+
+
+  }
+ 
   stop() {
-    this.velocity = 0;
-    const totalHeight = this.mapDimensions.reduce((sum, dim) => {
-      const atlasWidth = dim?.width || 600;
-      const atlasHeight = dim?.height || 600;
-      const atlasAspect = atlasWidth / atlasHeight;
-      const canvasAspect = 1000 / 600;
-      const scale = atlasAspect > canvasAspect ? 1000 / atlasWidth : 600 / atlasHeight;
-      return sum + atlasHeight * scale;
-    }, 0);
-    this.currentY = this.targetY % totalHeight;
-    if (this.currentY < 0) this.currentY += totalHeight;
-    console.log(`Stopped at currentY=${this.currentY}, targetIndex=${this.targetIndex}`);
-    this.reelView.updatePosition(this.currentY, this.targetIndex);
-    if (this.onStopCallback) {
-      this.onStopCallback();
-    }
+    // Handled in spin() with timeout
   }
-
+ 
   update() {
-    if (this.velocity === 0) return;
-    const currentTime = performance.now();
-    const elapsed = currentTime - this.spinStartTime;
-    if (elapsed >= this.spinDuration) {
-      this.stop();
-      return;
-    }
-    const t = Math.min(elapsed / this.spinDuration, 1);
-    const ease = t * t * t * (t * (t * 6 - 15) + 10);
-    this.currentY = this.spinStartY + (this.targetY - this.spinStartY) * ease;
-    const totalHeight = this.mapDimensions.reduce((sum, dim) => {
-      const atlasWidth = dim?.width || 600;
-      const atlasHeight = dim?.height || 600;
-      const atlasAspect = atlasWidth / atlasHeight;
-      const canvasAspect = 1000 / 600;
-      const scale = atlasAspect > canvasAspect ? 1000 / atlasWidth : 600 / atlasHeight;
-      return sum + atlasHeight * scale;
-    }, 0);
-    this.currentY = this.currentY % totalHeight;
-    if (this.currentY < 0) this.currentY += totalHeight;
-    console.log(`Updating spin: currentY=${this.currentY}, elapsed=${elapsed}/${this.spinDuration}`);
-    this.reelView.updatePosition(this.currentY, -1);
+    // Animation is handled by GSAP
   }
-
+ 
   updateSymbols(symbols) {
     this.reelView.renderSymbols(symbols);
   }
-
+ 
   getMapContainer() {
     return this.reelView.getMapContainer();
   }
-
+ 
   getSymbolContainer() {
     return this.reelView.getSymbolContainer();
   }
-
+ 
   getCurrentSymbols() {
     return this.reelView.getCurrentSymbols();
   }
+
+
+
 }
+ 

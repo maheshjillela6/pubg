@@ -1,0 +1,92 @@
+{"frames": {
+
+"map1_theme3":
+{
+	"frame": {"x":0,"y":0,"w":474,"h":266},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":474,"h":266},
+	"sourceSize": {"w":474,"h":266}
+},
+"map2_theme3":
+{
+	"frame": {"x":474,"y":0,"w":474,"h":266},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":474,"h":266},
+	"sourceSize": {"w":474,"h":266}
+},
+"map3_theme3":
+{
+	"frame": {"x":0,"y":266,"w":474,"h":266},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":474,"h":266},
+	"sourceSize": {"w":474,"h":266}
+},
+"map4_theme3":
+{
+	"frame": {"x":474,"y":266,"w":474,"h":266},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":474,"h":266},
+	"sourceSize": {"w":474,"h":266}
+},
+"map5_theme3":
+{
+	"frame": {"x":0,"y":532,"w":474,"h":266},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":474,"h":266},
+	"sourceSize": {"w":474,"h":266}
+},
+"map6_theme3":
+{
+	"frame": {"x":474,"y":532,"w":474,"h":266},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":474,"h":266},
+	"sourceSize": {"w":474,"h":266}
+},
+"map7_theme3":
+{
+	"frame": {"x":0,"y":798,"w":474,"h":266},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":474,"h":266},
+	"sourceSize": {"w":474,"h":266}
+},
+"map8_theme3":
+{
+	"frame": {"x":474,"y":798,"w":474,"h":266},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":474,"h":266},
+	"sourceSize": {"w":474,"h":266}
+},
+"map9_theme3":
+{
+	"frame": {"x":0,"y":1064,"w":474,"h":266},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":474,"h":266},
+	"sourceSize": {"w":474,"h":266}
+},
+"map10_theme3":
+{
+	"frame": {"x":474,"y":1064,"w":474,"h":266},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":474,"h":266},
+	"sourceSize": {"w":474,"h":266}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.1",
+	"image": "maps_theme3.png",
+	"format": "RGBA8888",
+	"size": {"w":948,"h":1330},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:d6fce5cafa52558732106d3841c91da5:78aab39c43c5a57afc2a8d1416fb696e:d7017670f71a25c137c81bba71ad4822$"
+}
+}
