@@ -11,7 +11,8 @@ class GameView {
     this.symbolContainer = new PIXI.Container();
     this.bonusContainer = new PIXI.Container();
     this.transitionContainer = new PIXI.Container();
-    this.app.stage.addChild(this.mapContainer, this.symbolContainer, this.bonusContainer, this.uiContainer, this.transitionContainer);
+    this.popupContainer = new PIXI.Container(); // Added for popups
+    this.app.stage.addChild(this.mapContainer, this.symbolContainer, this.bonusContainer, this.uiContainer, this.transitionContainer, this.popupContainer);
     this.themeSelector = null;
     this.heroProgressBar = null;
     this.enemyProgressBar = null;
@@ -27,9 +28,9 @@ class GameView {
     this.spinAnimation = null;
     this.heroSprite = null;
     this.zombieSprites = new Map();
-    this.zombieHealthBars = new Map(); // Replaced zombieEnergyTexts
-    this.bulletSprites = new Map(); // Track bullet sprites
-    this.bulletTexture = null; // Store bullet texture
+    this.zombieHealthBars = new Map();
+    this.bulletSprites = new Map();
+    this.bulletTexture = null;
     this.ammoText = null;
     this.isBonusSetupComplete = false;
     this.heroTargetRotation = 0;
@@ -109,7 +110,6 @@ class GameView {
     this.bonusBgTexture = null;
     this.bulletTexture = null;
 
-    // Load BonusBg.json
     try {
       const bgAtlas = await PIXI.Assets.load('assets/BonusBg.json');
       if (bgAtlas.textures && bgAtlas.textures['BonusBg']) {
@@ -122,7 +122,6 @@ class GameView {
       console.warn('Failed to load BonusBg.json, using solid background:', error);
     }
 
-    // Load bullet texture (assuming it's in bonusAssets.json)
     try {
       const bonusAtlas = await PIXI.Assets.load('bonusAssets.json');
       if (bonusAtlas.textures && bonusAtlas.textures['bullet']) {
@@ -130,7 +129,6 @@ class GameView {
         console.log('Loaded bullet texture from bonusAssets.json');
       } else {
         console.warn('Bullet texture not found in bonusAssets.json, using fallback');
-        // Fallback to a simple graphic
         const graphics = new PIXI.Graphics();
         graphics.beginFill(0xFFFFFF);
         graphics.drawRect(0, 0, 10, 5);
@@ -146,7 +144,6 @@ class GameView {
       this.bulletTexture = this.app.renderer.generateTexture(graphics);
     }
 
-    // Load ZombieAnim.json
     try {
       const zombieSpine = await PIXI.Assets.load({
         src: 'animations/ZombieAnim.json',
@@ -166,7 +163,6 @@ class GameView {
       console.warn('Failed to load ZombieAnim.json, falling back to sprite:', error);
     }
 
-    // Load HeroAnim.json
     try {
       const heroSpine = await PIXI.Assets.load({
         src: 'animations/HeroAnim.json',
@@ -296,7 +292,6 @@ class GameView {
 
     await this.loadBonusAssets();
 
-    // Setup background
     let background;
     if (this.bonusBgTexture && this.bonusBgTexture.valid) {
       background = new PIXI.Sprite(this.bonusBgTexture);
@@ -312,7 +307,6 @@ class GameView {
     }
     this.bonusContainer.addChild(background);
 
-    // Setup hero sprite
     if (this.heroSpineData) {
       this.heroSprite = new PIXI.spine.Spine(this.heroSpineData);
       this.heroSprite.state.setAnimation(0, 'HeroFiring', true);
@@ -337,7 +331,6 @@ class GameView {
     this.heroSprite.buttonMode = true;
     this.bonusContainer.addChild(this.heroSprite);
 
-    // Handle hero dragging
     let isDragging = false;
     this.heroSprite.on('pointerdown', () => {
       isDragging = true;
@@ -404,7 +397,6 @@ class GameView {
       this.bonusWinText.visible = true;
     }
 
-    // Update hero rotation toward aim target
     if (hero.aimTarget) {
       const dx = hero.aimTarget.x - hero.x;
       const dy = hero.aimTarget.y - hero.y;
@@ -414,7 +406,6 @@ class GameView {
       this.heroSprite.rotation += deltaRotation * rotationSpeed;
     }
 
-    // Update zombies
     const activeZombies = new Set(zombies);
     for (let [zombie, sprite] of this.zombieSprites) {
       if (!activeZombies.has(zombie)) {
@@ -451,7 +442,6 @@ class GameView {
         this.bonusContainer.addChild(sprite);
         this.zombieSprites.set(zombie, sprite);
 
-        // Create health bar
         const healthBar = new PIXI.Graphics();
         healthBar.beginFill(0xFF0000);
         healthBar.drawRect(-30, -50, 60, 10);
@@ -480,7 +470,6 @@ class GameView {
       }
     });
 
-    // Update bullets
     const activeBullets = new Set(bullets);
     for (let [bullet, sprite] of this.bulletSprites) {
       if (!activeBullets.has(bullet)) {
@@ -625,23 +614,119 @@ class GameView {
     });
   }
 
-  showBonusTotalWin(totalWin, callback) {
-    this.bonusTotalWinText.text = `Total Bonus Win: ${totalWin}`;
-    this.bonusTotalWinText.x = 600;
-    this.bonusTotalWinText.y = 400;
-    this.bonusTotalWinText.visible = true;
-    gsap.fromTo(this.bonusTotalWinText, { alpha: 0, scale: 0.5 }, { alpha: 1, scale: 1, duration: 0.5 });
-    gsap.to(this.bonusTotalWinText, {
-      alpha: 0,
-      duration: 0.5,
-      delay: 2,
-      onComplete: () => {
-        this.bonusTotalWinText.visible = false;
-        this.bonusTotalWinText.alpha = 1;
-        this.bonusTotalWinText.scale.set(1);
-        callback();
-      }
+  showBonusTriggerPopup(callback) {
+    this.popupContainer.removeChildren();
+    const overlay = new PIXI.Graphics();
+    overlay.beginFill(0x000000, 0.8);
+    overlay.drawRect(0, 0, this.app.screen.width, this.app.screen.height);
+    overlay.endFill();
+    this.popupContainer.addChild(overlay);
+
+    const popup = new PIXI.Graphics();
+    popup.beginFill(0x333333);
+    popup.drawRoundedRect(400, 200, 400, 400, 20);
+    popup.endFill();
+    this.popupContainer.addChild(popup);
+
+    const text = new PIXI.Text('Bonus Round Triggered!', {
+      fontFamily: 'Arial, sans-serif',
+      fontSize: 40,
+      fill: 0xFFD700,
+      align: 'center',
+      stroke: 0x000000,
+      strokeThickness: 4
     });
+    text.x = 600;
+    text.y = 300;
+    text.anchor.set(0.5);
+    this.popupContainer.addChild(text);
+
+    const button = new PIXI.Graphics();
+    button.beginFill(0xFFA500);
+    button.drawRoundedRect(500, 450, 200, 60, 10);
+    button.endFill();
+    button.interactive = true;
+    button.buttonMode = true;
+    button.on('pointerdown', () => {
+      this.popupContainer.removeChildren();
+      callback();
+    });
+    this.popupContainer.addChild(button);
+
+    const buttonText = new PIXI.Text('Skip to Bonus Round', {
+      fontFamily: 'Arial, sans-serif',
+      fontSize: 20,
+      fill: 0x000000,
+      align: 'center'
+    });
+    buttonText.x = 600;
+    buttonText.y = 480;
+    buttonText.anchor.set(0.5);
+    button.addChild(buttonText);
+
+    gsap.fromTo(popup, { alpha: 0, scale: 0.5 }, { alpha: 1, scale: 1, duration: 0.5 });
+    gsap.fromTo(text, { alpha: 0 }, { alpha: 1, duration: 0.5 });
+    gsap.fromTo(button, { alpha: 0 }, { alpha: 1, duration: 0.5 });
+  }
+
+  showBonusEndPopup(totalWin, callback) {
+    this.popupContainer.removeChildren();
+    const overlay = new PIXI.Graphics();
+    overlay.beginFill(0x000000, 0.8);
+    overlay.drawRect(0, 0, this.app.screen.width, this.app.screen.height);
+    overlay.endFill();
+    this.popupContainer.addChild(overlay);
+
+    const popup = new PIXI.Graphics();
+    popup.beginFill(0x333333);
+    popup.drawRoundedRect(400, 200, 400, 400, 20);
+    popup.endFill();
+    this.popupContainer.addChild(popup);
+
+    const text = new PIXI.Text(`Total Bonus Win: ${totalWin}`, {
+      fontFamily: 'Arial, sans-serif',
+      fontSize: 40,
+      fill: 0xFFD700,
+      align: 'center',
+      stroke: 0x000000,
+      strokeThickness: 4
+    });
+    text.x = 600;
+    text.y = 300;
+    text.anchor.set(0.5);
+    this.popupContainer.addChild(text);
+
+    const button = new PIXI.Graphics();
+    button.beginFill(0xFFA500);
+    button.drawRoundedRect(500, 450, 200, 60, 10);
+    button.endFill();
+    button.interactive = true;
+    button.buttonMode = true;
+    button.on('pointerdown', () => {
+      this.popupContainer.removeChildren();
+      callback();
+    });
+    this.popupContainer.addChild(button);
+
+    const buttonText = new PIXI.Text('Skip to Base Game', {
+      fontFamily: 'Arial, sans-serif',
+      fontSize: 20,
+      fill: 0x000000,
+      align: 'center'
+    });
+    buttonText.x = 600;
+    buttonText.y = 480;
+    buttonText.anchor.set(0.5);
+    button.addChild(buttonText);
+
+    gsap.fromTo(popup, { alpha: 0, scale: 0.5 }, { alpha: 1, scale: 1, duration: 0.5 });
+    gsap.fromTo(text, { alpha: 0 }, { alpha: 1, duration: 0.5 });
+    gsap.fromTo(button, { alpha: 0 }, { alpha: 1, duration: 0.5 });
+  }
+
+  showBonusTotalWin(totalWin, callback) {
+    // Deprecated, replaced by showBonusEndPopup
+    callback();
   }
 
   updateProgressBars(heroProgress, enemyProgress) {
@@ -725,7 +810,8 @@ class GameView {
 
     this.bonusButton = new PIXI.Graphics();
     this.bonusButton.beginFill(0xFFA500);
-    this.bonusButton.drawRoundedRect(0, 0, 100, 50,  this.bonusButton);
+    this.bonusButton.drawRoundedRect(0, 0, 100, 50, 10);
+    this.bonusButton.endFill();
     this.bonusButton.x = 10;
     this.bonusButton.y = 610;
     this.bonusButton.interactive = true;

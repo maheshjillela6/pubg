@@ -1,40 +1,33 @@
 
 spin_animation.png
-size: 1802, 1414
+size: 1827, 1101
 format: RGBA8888
 filter: Linear, Linear
 repeat: none
-Run5
-  rotate: true
-  xy: 2, 10
-  size: 483, 902
-  orig: 607, 1080
-  offset: 0, 77
-  index: -1
 run 3
-  rotate: false
-  xy: 2, 495
+  rotate: true
+  xy: 888, 2
   size: 580, 917
   orig: 607, 1080
   offset: 0, 76
   index: -1
 run1
   rotate: true
-  xy: 906, 2
+  xy: 2, 618
   size: 481, 894
   orig: 607, 1080
   offset: 67, 60
   index: -1
 run2
-  rotate: false
-  xy: 584, 528
+  rotate: true
+  xy: 2, 39
   size: 577, 884
   orig: 607, 1080
   offset: 0, 79
   index: -1
 run4
-  rotate: false
-  xy: 1163, 485
+  rotate: true
+  xy: 898, 584
   size: 515, 927
   orig: 607, 1080
   offset: 51, 27

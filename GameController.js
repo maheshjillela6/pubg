@@ -27,9 +27,9 @@ class GameController {
       lastFireTime: 0,
       fireInterval: 200,
       bonusStartTime: 0,
-      bullets: [], // Added to track bullets
-      isFiring: false, // Track if pointer is held for firing
-      isDraggingHero: false // Track if hero is being dragged
+      bullets: [],
+      isFiring: false,
+      isDraggingHero: false
     };
   }
 
@@ -108,8 +108,8 @@ class GameController {
       console.warn('Cannot start bonus feature: Already in bonus mode or spinning.');
       return;
     }
-    console.log('Starting bonus feature');
-    this.view.showModeTransition('Entering Bonus Battle', async () => {
+    console.log('Bonus feature triggered');
+    this.view.showBonusTriggerPopup(async () => {
       this.isBonusMode = true;
       this.bonusTotalWin = 0;
       this.bonusState.ammo = 50;
@@ -134,13 +134,15 @@ class GameController {
         });
         return;
       }
-      this.view.setupBonusBattle(
-        this.bonusState.ammo,
-        this.model.bonusTextures['l'],
-        this.model.bonusTextures['zombie'],
-        (targetX, targetY, isFiring, isDragging) => this.handlePlayerInput(targetX, targetY, isFiring, isDragging)
-      );
-      this.view.updateBonusUI(true, this.bonusState.ammo);
+      this.view.showModeTransition('Entering Bonus Battle', () => {
+        this.view.setupBonusBattle(
+          this.bonusState.ammo,
+          this.model.bonusTextures['l'],
+          this.model.bonusTextures['zombie'],
+          (targetX, targetY, isFiring, isDragging) => this.handlePlayerInput(targetX, targetY, isFiring, isDragging)
+        );
+        this.view.updateBonusUI(true, this.bonusState.ammo);
+      });
     });
   }
 
@@ -152,8 +154,9 @@ class GameController {
       this.bonusState.aimTarget = { x: targetX, y: targetY };
     }
     this.bonusState.isFiring = isFiring;
+    this.bonusState.isDraggingHero = isDragging;
     if (isDragging && targetX !== null && targetY !== null) {
-      this.bonusState.hero.x = Math.max(40, Math.min(1160, targetX)); // Keep within bounds
+      this.bonusState.hero.x = Math.max(40, Math.min(1160, targetX));
       this.bonusState.hero.y = Math.max(40, Math.min(760, targetY));
     }
   }
@@ -182,8 +185,8 @@ class GameController {
       return;
     }
 
-    // Handle firing
-    if (this.bonusState.isFiring && this.bonusState.aimTarget && currentTime - this.bonusState.lastFireTime >= this.bonusState.fireInterval) {
+    // Handle firing (only if not dragging hero)
+    if (this.bonusState.isFiring && !this.bonusState.isDraggingHero && this.bonusState.aimTarget && currentTime - this.bonusState.lastFireTime >= this.bonusState.fireInterval) {
       this.bonusState.ammo--;
       this.view.updateBonusUI(true, this.bonusState.ammo);
 
@@ -197,7 +200,7 @@ class GameController {
       const dy = this.bonusState.aimTarget.y - this.bonusState.hero.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
       if (distance > 0) {
-        const speed = 10; // Pixels per frame
+        const speed = 10;
         this.bonusState.bullets.push({
           x: this.bonusState.hero.x,
           y: this.bonusState.hero.y,
@@ -239,7 +242,7 @@ class GameController {
             this.view.updateBonusUI(true, this.bonusState.ammo);
             this.bonusState.zombies = this.bonusState.zombies.filter(z => z !== zombie);
           }
-          return false; // Remove bullet on hit
+          return false;
         }
       }
       return true;
@@ -410,7 +413,7 @@ class GameController {
     if (!this.isBonusMode) return;
     console.log('Ending bonus feature');
     this.isBonusMode = false;
-    this.view.showBonusTotalWin(this.bonusTotalWin, () => {
+    this.view.showBonusEndPopup(this.bonusTotalWin, () => {
       this.bonusState.zombies = [];
       this.bonusState.hero = null;
       this.bonusState.ammo = 0;
