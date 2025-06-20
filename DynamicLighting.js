@@ -36,16 +36,8 @@ class WarzoneLighting {
       this.createLightningBolt();
     }
  
-    // Animate flash
-    gsap.to(flash, {
-      alpha: 0,
-      duration: 0.3,
-      delay: 0.1,
-      onComplete: () => this.removeEffect(flash)
-    });
- 
-    // Removed screen shake
-    // this.shakeScreen();
+    // Removed flash animation, just remove the effect immediately
+    this.removeEffect(flash);
   }
  
   createLightningBolt() {
@@ -61,12 +53,8 @@ class WarzoneLighting {
     this.container.addChild(bolt);
     this.activeEffects.push(bolt);
  
-    // Animate bolt
-    gsap.to(bolt, {
-      alpha: 0,
-      duration: 0.2 + Math.random() * 0.3,
-      onComplete: () => this.removeEffect(bolt)
-    });
+    // Removed bolt animation, just remove the effect immediately
+    this.removeEffect(bolt);
   }
  
   drawZigzag(graphics, x1, y1, x2, y2, segments) {
@@ -114,5 +102,3 @@ class WarzoneLighting {
     this.activeEffects = [];
   }
 }
- 
- 

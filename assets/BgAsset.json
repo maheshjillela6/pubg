@@ -2,7 +2,7 @@
 
 "BgAsset":
 {
-	"frame": {"x":0,"y":0,"w":1184,"h":664},
+	"frame": {"x":0,"y":0,"w":0,"h":0},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":1184,"h":664},

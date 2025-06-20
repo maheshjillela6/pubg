@@ -29,17 +29,17 @@ class GameView {
     this.heroSprite = null;
     this.zombieSprites = new Map();
     this.zombieHealthBars = new Map();
-    this.zombieCurrentAnimations = new Map(); // Track current animation per zombie
     this.bulletSprites = new Map();
     this.bulletTexture = null;
     this.ammoText = null;
     this.isBonusSetupComplete = false;
     this.heroTargetRotation = 0;
+    this.zombieSpineData = null;
+    this.heroSpineData = null;
+    this.zombieMoveSpineData = null; // Added for ZombieMoveAnim
+    this.heroMoveSpineData = null;   // Added for HeroMoveAnim
+    this.heroFireSpineData = null;   // Added for HeroFireAnim
     this.bonusBgTexture = null;
-    this.zombieAnimationDataLeft = null;
-    this.zombieAnimationDataRight = null;
-    this.zombieAnimationDataUp = null;
-    this.zombieAnimationDataDown = null;
   }
 
   async init() {
@@ -108,12 +108,13 @@ class GameView {
   }
 
   async loadBonusAssets() {
+    this.zombieSpineData = null;
+    this.heroSpineData = null;
+    this.zombieMoveSpineData = null;
+    this.heroMoveSpineData = null;
+    this.heroFireSpineData = null;
     this.bonusBgTexture = null;
     this.bulletTexture = null;
-    this.zombieAnimationDataLeft = null;
-    this.zombieAnimationDataRight = null;
-    this.zombieAnimationDataUp = null;
-    this.zombieAnimationDataDown = null;
 
     try {
       const bgAtlas = await PIXI.Assets.load('assets/BonusBg.json');
@@ -124,7 +125,7 @@ class GameView {
         console.warn('BonusBg texture not found in BonusBg.json');
       }
     } catch (error) {
-      console.error('Failed to load BonusBg.json:', error);
+      console.warn('Failed to load BonusBg.json, using solid background:', error);
     }
 
     try {
@@ -141,7 +142,7 @@ class GameView {
         this.bulletTexture = this.app.renderer.generateTexture(graphics);
       }
     } catch (error) {
-      console.error('Failed to load bullet texture:', error);
+      console.warn('Failed to load bullet texture, using fallback:', error);
       const graphics = new PIXI.Graphics();
       graphics.beginFill(0xFFFFFF);
       graphics.drawRect(0, 0, 10, 5);
@@ -149,58 +150,96 @@ class GameView {
       this.bulletTexture = this.app.renderer.generateTexture(graphics);
     }
 
-    const loadSpineAnimation = async (file, animName) => {
-      try {
-        const spineData = await PIXI.Assets.load({
-          src: `animations/${file}`,
-          data: { type: 'spine' }
-        });
-        if (spineData.spineData) {
-          const animations = spineData.spineData.animations.map(anim => anim.name);
-          console.log(`Loaded ${file}: Available animations: [${animations.join(', ')}]`);
-          if (animations.includes(animName)) {
-            return spineData.spineData;
-          } else {
-            console.warn(`${animName} not found in ${file}. Available animations: [${animations.join(', ')}]`);
-            return null;
-          }
-        } else {
-          console.warn(`No spineData in ${file}`);
-          return null;
-        }
-      } catch (error) {
-        console.error(`Failed to load ${file}:`, error);
-        return null;
+    try {
+      const zombieSpine = await PIXI.Assets.load({
+        src: 'animations/ZombieAnim.json',
+        data: { type: 'spine' }
+      });
+      if (
+        zombieSpine.spineData &&
+        zombieSpine.spineData.animations.some(anim => anim.name === 'ZombieGrow') &&
+        zombieSpine.spineData.animations.some(anim => anim.name === 'ZombieMoving')
+      ) {
+        this.zombieSpineData = zombieSpine.spineData;
+        console.log('Loaded ZombieAnim spine data with ZombieGrow and ZombieMoving animations');
+      } else {
+        console.warn('ZombieAnim spine data missing required animations (ZombieGrow or ZombieMoving)');
       }
-    };
-
-    this.zombieAnimationDataLeft = await loadSpineAnimation('ZombieMoveLeft.json', 'ZombieMoveLeft');
-    this.zombieAnimationDataRight = await loadSpineAnimation('ZombieMoveRight.json', 'ZombieMoveRight');
-    this.zombieAnimationDataUp = await loadSpineAnimation('ZombieMoveUp.json', 'ZombieMoveUp');
-    this.zombieAnimationDataDown = await loadSpineAnimation('ZombieMoveDown.json', 'ZombieMoveDown');
-
-    // Log animation data status
-    const animationStatus = {
-      ZombieMoveLeft: !!this.zombieAnimationDataLeft,
-      ZombieMoveRight: !!this.zombieAnimationDataRight,
-      ZombieMoveUp: !!this.zombieAnimationDataUp,
-      ZombieMoveDown: !!this.zombieAnimationDataDown
-    };
-    console.log('Animation data status:', animationStatus);
-
-    // Warn if Up or Down animations are missing
-    if (!this.zombieAnimationDataUp) {
-      console.warn('ZombieMoveUp animation unavailable. Using ZombieMoveLeft/Right as fallback for upward movement.');
+    } catch (error) {
+      console.warn('Failed to load ZombieAnim.json, falling back to sprite:', error);
     }
-    if (!this.zombieAnimationDataDown) {
-      console.warn('ZombieMoveDown animation unavailable. Using ZombieMoveLeft/Right as fallback for downward movement.');
+
+    try {
+      const zombieMoveSpine = await PIXI.Assets.load({
+        src: 'animations/ZombieMoveAnim.json',
+        data: { type: 'spine' }
+      });
+      if (zombieMoveSpine.spineData) {
+        this.zombieMoveSpineData = zombieMoveSpine.spineData;
+        const availableAnimations = zombieMoveSpine.spineData.animations.map(anim => anim.name);
+        console.log(`Loaded ZombieMoveAnim spine data with animations: ${availableAnimations.join(', ')}`);
+      } else {
+        console.warn('ZombieMoveAnim spine data not loaded');
+      }
+    } catch (error) {
+      console.warn('Failed to load ZombieMoveAnim.json:', error);
+    }
+
+    try {
+      const heroSpine = await PIXI.Assets.load({
+        src: 'animations/HeroAnim.json',
+        data: { type: 'spine' }
+      });
+      if (
+        heroSpine.spineData &&
+        heroSpine.spineData.animations.some(anim => anim.name === 'HeroFiring')
+      ) {
+        this.heroSpineData = heroSpine.spineData;
+        console.log('Loaded HeroAnim spine data with HeroFiring animation');
+      } else {
+        console.warn('HeroAnim spine data missing required animation (HeroFiring)');
+      }
+    } catch (error) {
+      console.warn('Failed to load HeroAnim.json, falling back to sprite:', error);
+    }
+
+    try {
+      const heroMoveSpine = await PIXI.Assets.load({
+        src: 'animations/HeroMoveAnim.json',
+        data: { type: 'spine' }
+      });
+      if (heroMoveSpine.spineData) {
+        this.heroMoveSpineData = heroMoveSpine.spineData;
+        const availableAnimations = heroMoveSpine.spineData.animations.map(anim => anim.name);
+        console.log(`Loaded HeroMoveAnim spine data with animations: ${availableAnimations.join(', ')}`);
+      } else {
+        console.warn('HeroMoveAnim spine data not loaded');
+      }
+    } catch (error) {
+      console.warn('Failed to load HeroMoveAnim.json:', error);
+    }
+
+    try {
+      const heroFireSpine = await PIXI.Assets.load({
+        src: 'animations/HeroFireAnim.json',
+        data: { type: 'spine' }
+      });
+      if (heroFireSpine.spineData) {
+        this.heroFireSpineData = heroFireSpine.spineData;
+        const availableAnimations = heroFireSpine.spineData.animations.map(anim => anim.name);
+        console.log(`Loaded HeroFireAnim spine data with animations: ${availableAnimations.join(', ')}`);
+      } else {
+        console.warn('HeroFireAnim spine data not loaded');
+      }
+    } catch (error) {
+      console.warn('Failed to load HeroFireAnim.json:', error);
     }
   }
 
   setupProgressBars() {
     this.heroProgressBar = new PIXI.Graphics();
     this.heroProgressBar.beginFill(0x00FF00);
-    this.heroProgressBar.drawRect(20, 100, 30, 400);
+    this.heroProgressBar.drawRect(20, 100, 50, 600);
     this.heroProgressBar.endFill();
     this.heroProgressBar.scale.y = 0;
     this.uiContainer.addChild(this.heroProgressBar);
@@ -211,14 +250,14 @@ class GameView {
       fill: 0xFFFFFF,
       align: 'center'
     });
-    this.heroProgressText.x = 35;
+    this.heroProgressText.x = 45;
     this.heroProgressText.y = 80;
     this.heroProgressText.anchor.set(0.5);
     this.uiContainer.addChild(this.heroProgressText);
 
     this.enemyProgressBar = new PIXI.Graphics();
     this.enemyProgressBar.beginFill(0xFF0000);
-    this.enemyProgressBar.drawRect(1150, 100, 30, 400);
+    this.enemyProgressBar.drawRect(1130, 100, 50, 600);
     this.enemyProgressBar.endFill();
     this.enemyProgressBar.scale.y = 0;
     this.uiContainer.addChild(this.enemyProgressBar);
@@ -229,7 +268,7 @@ class GameView {
       fill: 0xFFFFFF,
       align: 'center'
     });
-    this.enemyProgressText.x = 1165;
+    this.enemyProgressText.x = 1155;
     this.enemyProgressText.y = 80;
     this.enemyProgressText.anchor.set(0.5);
     this.uiContainer.addChild(this.enemyProgressText);
@@ -322,12 +361,51 @@ class GameView {
     }
     this.bonusContainer.addChild(background);
 
-    if (heroTexture && heroTexture.valid) {
-      this.heroSprite = new PIXI.Sprite(heroTexture);
-      console.log('Using hero sprite from bonusAssets.json');
-    } else {
-      this.heroSprite = new PIXI.Sprite();
-      console.warn('No valid hero texture provided, using empty sprite');
+    // Setup hero sprite
+    let heroSpineUsed = false;
+    if (this.heroMoveSpineData || this.heroFireSpineData) {
+      // Use HeroMoveAnim or HeroFireAnim if available
+      const spineData = this.heroFireSpineData || this.heroMoveSpineData;
+      this.heroSprite = new PIXI.spine.Spine(spineData);
+      this.heroSprite.autoUpdate = true;
+
+      // Check for firing animation first
+      if (this.heroFireSpineData && this.heroFireSpineData.animations.some(anim => anim.name === 'HeroFiring')) {
+        this.heroSprite.state.setAnimation(0, 'HeroFiring', true);
+        console.log('Using HeroFiring animation from HeroFireAnim');
+        heroSpineUsed = true;
+      } else if (this.heroMoveSpineData && this.heroMoveSpineData.animations.some(anim => anim.name === 'HeroRight')) {
+        // Default to HeroRight if available
+        this.heroSprite.state.setAnimation(0, 'HeroRight', true);
+        console.log('Using HeroRight animation from HeroMoveAnim as default');
+        heroSpineUsed = true;
+      } else {
+        // Fallback to any available animation
+        const availableAnimations = spineData.animations.map(anim => anim.name);
+        if (availableAnimations.length > 0) {
+          this.heroSprite.state.setAnimation(0, availableAnimations[0], true);
+          console.log(`Using fallback animation ${availableAnimations[0]} for hero`);
+          heroSpineUsed = true;
+        }
+      }
+    } else if (this.heroSpineData && this.heroSpineData.animations.some(anim => anim.name === 'HeroFiring')) {
+      // Fallback to old HeroAnim
+      this.heroSprite = new PIXI.spine.Spine(this.heroSpineData);
+      this.heroSprite.state.setAnimation(0, 'HeroFiring', true);
+      this.heroSprite.autoUpdate = true;
+      console.log('Using HeroFiring animation from HeroAnim');
+      heroSpineUsed = true;
+    }
+
+    if (!heroSpineUsed) {
+      // Fallback to static sprite
+      if (heroTexture && heroTexture.valid) {
+        this.heroSprite = new PIXI.Sprite(heroTexture);
+        console.log('Using hero sprite from bonusAssets.json');
+      } else {
+        this.heroSprite = new PIXI.Sprite();
+        console.warn('No valid hero texture provided, using empty sprite');
+      }
     }
 
     this.heroSprite.anchor.set(0.5);
@@ -387,21 +465,20 @@ class GameView {
 
     this.zombieSprites.clear();
     this.zombieHealthBars.clear();
-    this.zombieCurrentAnimations.clear();
     this.bulletSprites.clear();
     this.isBonusSetupComplete = true;
     console.log('Bonus battle setup complete');
   }
 
   updateBonusBattle(hero, zombies, zombieTexture, bonusTotalWin, bullets) {
-    if (!this.isBonusSetupComplete) {
-      console.warn('Cannot update bonus battle: Setup not complete');
+    if (!this.isBonusSetupComplete || !this.heroSprite || !hero) {
+      console.warn('Cannot update bonus battle: Setup incomplete, heroSprite or hero data missing');
       return;
     }
-    if (!this.heroSprite || !hero || !hero.x || !hero.y) {
-      console.warn('Cannot update bonus battle: heroSprite or hero data missing or invalid', { heroSprite: !!this.heroSprite, hero: hero });
-      return;
-    }
+
+    // Track previous hero position for movement detection
+    const prevHeroX = this.heroSprite.x;
+    const prevHeroY = this.heroSprite.y;
 
     this.heroSprite.x = hero.x;
     this.heroSprite.y = hero.y;
@@ -411,6 +488,59 @@ class GameView {
       this.bonusWinText.visible = true;
     }
 
+    // Update hero animation based on movement or firing
+    if (this.heroMoveSpineData || this.heroFireSpineData) {
+      let animationSet = false;
+
+      // Check if hero is firing
+      if (hero.isFiring && this.heroFireSpineData && this.heroFireSpineData.animations.some(anim => anim.name === 'HeroFiring')) {
+        if (this.heroSprite.state.getCurrent(0)?.animation.name !== 'HeroFiring') {
+          this.heroSprite.state.setAnimation(0, 'HeroFiring', true);
+          console.log('Playing HeroFiring animation');
+        }
+        animationSet = true;
+      } else {
+        // Determine movement direction
+        const dx = hero.x - prevHeroX;
+        const dy = hero.y - prevHeroY;
+        const threshold = 1; // Small threshold to detect movement
+        if (this.heroMoveSpineData && (Math.abs(dx) > threshold || Math.abs(dy) > threshold)) {
+          let direction = null;
+          if (Math.abs(dx) > Math.abs(dy)) {
+            // Horizontal movement
+            direction = dx > 0 ? 'HeroRight' : 'HeroLeft';
+          } else {
+            // Vertical movement
+            direction = dy > 0 ? 'HeroDown' : 'HeroUp';
+          }
+
+          if (this.heroMoveSpineData.animations.some(anim => anim.name === direction)) {
+            if (this.heroSprite.state.getCurrent(0)?.animation.name !== direction) {
+              this.heroSprite.state.setAnimation(0, direction, true);
+              console.log(`Playing ${direction} animation`);
+            }
+            animationSet = true;
+          }
+        }
+      }
+
+      // Fallback if no appropriate animation was set
+      if (!animationSet) {
+        if (this.heroMoveSpineData && this.heroMoveSpineData.animations.some(anim => anim.name === 'HeroRight')) {
+          if (this.heroSprite.state.getCurrent(0)?.animation.name !== 'HeroRight') {
+            this.heroSprite.state.setAnimation(0, 'HeroRight', true);
+            console.log('Falling back to HeroRight animation');
+          }
+        } else if (this.heroSpineData && this.heroSpineData.animations.some(anim => anim.name === 'HeroFiring')) {
+          if (this.heroSprite.state.getCurrent(0)?.animation.name !== 'HeroFiring') {
+            this.heroSprite.state.setAnimation(0, 'HeroFiring', true);
+            console.log('Falling back to HeroFiring from HeroAnim');
+          }
+        }
+      }
+    }
+
+    // Update hero rotation
     if (hero.aimTarget) {
       const dx = hero.aimTarget.x - hero.x;
       const dy = hero.aimTarget.y - hero.y;
@@ -430,177 +560,112 @@ class GameView {
           this.zombieHealthBars.delete(zombie);
         }
         this.zombieSprites.delete(zombie);
-        this.zombieCurrentAnimations.delete(zombie);
       }
     }
 
     zombies.forEach(zombie => {
-      if (!zombie || !zombie.x || !zombie.y) {
-        console.warn('Invalid zombie data:', zombie);
-        return;
-      }
-
       let sprite = this.zombieSprites.get(zombie);
-      let isSpine = false;
-
-      // Calculate direction from zombie to hero
-      const dx = hero.x - zombie.x; // Positive: hero is to the right
-      const dy = hero.y - zombie.y; // Positive: hero is below
-      const absDx = Math.abs(dx);
-      const absDy = Math.abs(dy);
-      let animationData = null;
-      let animationName = '';
-      let direction = '';
-
-      // Log position and direction
-      console.log(`Zombie at (${zombie.x}, ${zombie.y}), Hero at (${hero.x}, ${hero.y}), dx=${dx}, dy=${dy}`);
-
-      // Determine direction based on dx and dy
-      if (absDx >= absDy) {
-        // Horizontal direction dominates
-        if (dx > 0) {
-          animationData = this.zombieAnimationDataRight; // Swapped: Move right toward hero
-          animationName = 'ZombieMoveRight';
-          direction = 'right';
-        } else if (dx < 0) {
-          animationData = this.zombieAnimationDataLeft; // Swapped: Move left toward hero
-          animationName = 'ZombieMoveLeft';
-          direction = 'left';
-        } else {
-          // dx == 0, check dy or default
-          if (dy > 0) {
-            animationData = this.zombieAnimationDataUp || (dx >= 0 ? this.zombieAnimationDataRight : this.zombieAnimationDataLeft); // Swapped fallbacks
-            animationName = this.zombieAnimationDataUp ? 'ZombieMoveUp' : (dx >= 0 ? 'ZombieMoveRight' : 'ZombieMoveLeft');
-            direction = this.zombieAnimationDataUp ? 'up' : (dx >= 0 ? 'right (up fallback)' : 'left (up fallback)');
-          } else if (dy < 0) {
-            animationData = this.zombieAnimationDataDown || (dx >= 0 ? this.zombieAnimationDataRight : this.zombieAnimationDataLeft); // Swapped fallbacks
-            animationName = this.zombieAnimationDataDown ? 'ZombieMoveDown' : (dx >= 0 ? 'ZombieMoveRight' : 'ZombieMoveLeft');
-            direction = this.zombieAnimationDataDown ? 'down' : (dx >= 0 ? 'right (down fallback)' : 'left (down fallback)');
-          } else {
-            // dx == 0 && dy == 0 (zombie on hero)
-            animationData = this.zombieAnimationDataRight || this.zombieAnimationDataLeft; // Prefer Right after swap
-            animationName = this.zombieAnimationDataRight ? 'ZombieMoveRight' : 'ZombieMoveLeft';
-            direction = this.zombieAnimationDataRight ? 'right (default)' : 'left (default)';
-            console.warn(`Zombie and hero at same position, defaulting to ${animationName}`);
-          }
-        }
-      } else {
-        // Vertical direction dominates
-        if (dy > 0) {
-          animationData = this.zombieAnimationDataUp || (dx >= 0 ? this.zombieAnimationDataRight : this.zombieAnimationDataLeft); // Swapped fallbacks
-          animationName = this.zombieAnimationDataUp ? 'ZombieMoveUp' : (dx >= 0 ? 'ZombieMoveRight' : 'ZombieMoveLeft');
-          direction = this.zombieAnimationDataUp ? 'up' : (dx >= 0 ? 'right (up fallback)' : 'left (up fallback)');
-        } else if (dy < 0) {
-          animationData = this.zombieAnimationDataDown || (dx >= 0 ? this.zombieAnimationDataRight : this.zombieAnimationDataLeft); // Swapped fallbacks
-          animationName = this.zombieAnimationDataDown ? 'ZombieMoveDown' : (dx >= 0 ? 'ZombieMoveRight' : 'ZombieMoveLeft');
-          direction = this.zombieAnimationDataDown ? 'down' : (dx >= 0 ? 'right (down fallback)' : 'left (down fallback)');
-        }
-      }
-
-      // Check if animationData is valid, otherwise try fallback
-      if (!animationData) {
-        console.warn(`No animation data for ${animationName} (direction: ${direction}), dx=${dx}, dy=${dy}`);
-        // Try available animations in order of preference
-        if (this.zombieAnimationDataRight) { // Swapped preference
-          animationData = this.zombieAnimationDataRight;
-          animationName = 'ZombieMoveRight';
-          direction = 'right (fallback)';
-        } else if (this.zombieAnimationDataLeft) {
-          animationData = this.zombieAnimationDataLeft;
-          animationName = 'ZombieMoveLeft';
-          direction = 'left (fallback)';
-        } else if (this.zombieAnimationDataUp) {
-          animationData = this.zombieAnimationDataUp;
-          animationName = 'ZombieMoveUp';
-          direction = 'up (fallback)';
-        } else if (this.zombieAnimationDataDown) {
-          animationData = this.zombieAnimationDataDown;
-          animationName = 'ZombieMoveDown';
-          direction = 'down (fallback)';
-        } else if (zombieTexture && zombieTexture.valid) {
-          sprite = new PIXI.Sprite(zombieTexture);
-          sprite.anchor.set(0.5);
-          console.log('Using zombie sprite from bonusAssets.json as fallback');
-        } else {
-          sprite = new PIXI.Sprite();
-          sprite.anchor.set(0.5);
-          console.warn('No valid zombie texture or animation, using empty sprite');
-        }
-      }
-
-      // Create new sprite if it doesn't exist
-      if (!sprite && animationData) {
-        try {
-          sprite = new PIXI.spine.Spine(animationData);
-          sprite.state.setAnimation(0, animationName, true);
+      if (!sprite) {
+        let spineUsed = false;
+        if (this.zombieMoveSpineData) {
+          sprite = new PIXI.spine.Spine(this.zombieMoveSpineData);
           sprite.autoUpdate = true;
-          isSpine = true;
-
-          // Log Spine bounds for debugging
-          const bounds = sprite.getLocalBounds();
-          console.log(`Created Spine sprite for ${animationName}: Bounds (x=${bounds.x}, y=${bounds.y}, width=${bounds.width}, height=${bounds.height})`);
-
-          // Set pivot to center for consistent positioning
-          sprite.pivot.set(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
-
-          console.log(`Using ${animationName} animation for zombie at (${zombie.x}, ${zombie.y}) moving ${direction} toward hero at (${hero.x}, ${hero.y})`);
-        } catch (error) {
-          console.error(`Failed to create Spine sprite for ${animationName}:`, error);
-          sprite = new PIXI.Sprite(zombieTexture && zombieTexture.valid ? zombieTexture : null);
-          sprite.anchor.set(0.5);
-          console.warn(`Falling back to static sprite for zombie at (${zombie.x}, ${zombie.y})`);
-        }
-      }
-
-      if (sprite) {
-        // Create or update health bar
-        let healthBar = this.zombieHealthBars.get(zombie);
-        if (!healthBar && isSpine) {
-          healthBar = new PIXI.Graphics();
-          this.bonusContainer.addChild(healthBar);
-          this.zombieHealthBars.set(zombie, healthBar);
+          // Default to ZombieMoveRight if available
+          if (this.zombieMoveSpineData.animations.some(anim => anim.name === 'ZombieMoveRight')) {
+            sprite.state.setAnimation(0, 'ZombieMoveRight', true);
+            console.log('Using ZombieMoveRight animation as default');
+            spineUsed = true;
+          } else {
+            // Use any available animation
+            const availableAnimations = this.zombieMoveSpineData.animations.map(anim => anim.name);
+            if (availableAnimations.length > 0) {
+              sprite.state.setAnimation(0, availableAnimations[0], true);
+              console.log(`Using fallback animation ${availableAnimations[0]} for zombie`);
+              spineUsed = true;
+            }
+          }
+        } else if (this.zombieSpineData) {
+          sprite = new PIXI.spine.Spine(this.zombieSpineData);
+          sprite.state.setAnimation(0, 'ZombieGrow', false);
+          sprite.state.addAnimation(0, 'ZombieMoving', true, 0);
+          sprite.autoUpdate = true;
+          console.log('Using ZombieAnim spine animation for zombie');
+          spineUsed = true;
         }
 
-        if (!this.zombieSprites.has(zombie)) {
-          sprite.width = 60;
-          sprite.height = 60;
-          this.bonusContainer.addChild(sprite);
-          this.zombieSprites.set(zombie, sprite);
-          this.zombieCurrentAnimations.set(zombie, animationName);
-        }
-
-        // Update position and properties
-        sprite.x = zombie.x;
-        sprite.y = zombie.y;
-        sprite.tint = zombie.energy > 50 ? 0xFFFFFF : zombie.energy > 25 ? 0xFF9999 : 0xFF3333;
-        sprite.rotation = 0; // No rotation, rely on animation direction
-
-        // Update animation if changed
-        const currentAnimation = this.zombieCurrentAnimations.get(zombie);
-        if (isSpine && currentAnimation !== animationName) {
-          try {
-            sprite.state.setAnimation(0, animationName, true, 0.2); // Mix time of 0.2s for smooth transition
-            this.zombieCurrentAnimations.set(zombie, animationName);
-            console.log(`Updated animation to ${animationName} for zombie at (${zombie.x}, ${zombie.y}) moving ${direction}`);
-          } catch (error) {
-            console.error(`Failed to update animation to ${animationName}:`, error);
+        if (!spineUsed) {
+          if (zombieTexture && zombieTexture.valid) {
+            sprite = new PIXI.Sprite(zombieTexture);
+            console.log('Using zombie sprite from bonusAssets.json');
+          } else {
+            sprite = new PIXI.Sprite();
+            console.warn('No valid zombie texture provided, using empty sprite');
           }
         }
 
-        // Update health bar
-        if (healthBar) {
-          healthBar.clear();
-          healthBar.beginFill(0xFF0000);
-          // Adjust health bar position based on Spine bounds
-          const bounds = isSpine ? sprite.getLocalBounds() : { x: -30, y: -30, width: 60, height: 60 };
-          healthBar.drawRect(bounds.x, bounds.y - 20, bounds.width, 10);
-          healthBar.endFill();
-          healthBar.beginFill(0x00FF00);
-          healthBar.drawRect(bounds.x, bounds.y - 20, bounds.width * (zombie.energy / 100), 10);
-          healthBar.endFill();
-          healthBar.x = zombie.x;
-          healthBar.y = zombie.y;
+        sprite.anchor.set(0.5);
+        sprite.width = 60;
+        sprite.height = 60;
+        this.bonusContainer.addChild(sprite);
+        this.zombieSprites.set(zombie, sprite);
+
+        const healthBar = new PIXI.Graphics();
+        healthBar.beginFill(0xFF0000);
+        healthBar.drawRect(-30, -50, 60, 10);
+        healthBar.endFill();
+        healthBar.beginFill(0x00FF00);
+        healthBar.drawRect(-30, -50, 60 * (zombie.energy / 100), 10);
+        healthBar.endFill();
+        this.bonusContainer.addChild(healthBar);
+        this.zombieHealthBars.set(zombie, healthBar);
+      }
+
+      // Update zombie position and animation
+      sprite.x = zombie.x;
+      sprite.y = zombie.y;
+      sprite.tint = zombie.energy > 50 ? 0xFFFFFF : zombie.energy > 25 ? 0xFF9999 : 0xFF3333;
+
+      if (this.zombieMoveSpineData && sprite instanceof PIXI.spine.Spine) {
+        // Determine direction relative to hero
+        const dx = hero.x - zombie.x;
+        const dy = hero.y - zombie.y;
+        let direction = null;
+        if (Math.abs(dx) > Math.abs(dy)) {
+          direction = dx > 0 ? 'ZombieMoveRight' : 'ZombieMoveLeft';
+        } else {
+          direction = dy > 0 ? 'ZombieMoveDown' : 'ZombieMoveUp';
         }
+
+        if (this.zombieMoveSpineData.animations.some(anim => anim.name === direction)) {
+          if (sprite.state.getCurrent(0)?.animation.name !== direction) {
+            sprite.state.setAnimation(0, direction, true);
+            console.log(`Playing zombie ${direction} animation`);
+          }
+        } else if (this.zombieMoveSpineData.animations.some(anim => anim.name === 'ZombieMoveRight')) {
+          if (sprite.state.getCurrent(0)?.animation.name !== 'ZombieMoveRight') {
+            sprite.state.setAnimation(0, 'ZombieMoveRight', true);
+            console.log('Falling back to ZombieMoveRight animation');
+          }
+        }
+      } else if (this.zombieSpineData && sprite instanceof PIXI.spine.Spine) {
+        // Maintain existing behavior
+        if (sprite.state.getCurrent(0)?.animation.name !== 'ZombieMoving') {
+          sprite.state.setAnimation(0, 'ZombieGrow', false);
+          sprite.state.addAnimation(0, 'ZombieMoving', true, 0);
+        }
+      }
+
+      const healthBar = this.zombieHealthBars.get(zombie);
+      if (healthBar) {
+        healthBar.clear();
+        healthBar.beginFill(0xFF0000);
+        healthBar.drawRect(-30, -50, 60, 10);
+        healthBar.endFill();
+        healthBar.beginFill(0x00FF00);
+        healthBar.drawRect(-30, -50, 60 * (zombie.energy / 100), 10);
+        healthBar.endFill();
+        healthBar.x = zombie.x;
+        healthBar.y = zombie.y;
       }
     });
 
@@ -632,18 +697,18 @@ class GameView {
     this.bonusContainer.removeChildren();
     this.zombieSprites.clear();
     this.zombieHealthBars.clear();
-    this.zombieCurrentAnimations.clear();
     this.bulletSprites.clear();
     this.heroSprite = null;
     this.ammoText = null;
     this.bonusWinText = null;
     this.heroTargetRotation = 0;
+    this.zombieSpineData = null;
+    this.heroSpineData = null;
+    this.zombieMoveSpineData = null;
+    this.heroMoveSpineData = null;
+    this.heroFireSpineData = null;
     this.bonusBgTexture = null;
     this.bulletTexture = null;
-    this.zombieAnimationDataLeft = null;
-    this.zombieAnimationDataRight = null;
-    this.zombieAnimationDataUp = null;
-    this.zombieAnimationDataDown = null;
     this.mapContainer.visible = true;
     this.symbolContainer.visible = true;
     console.log('Bonus battle cleanup complete');
@@ -702,7 +767,7 @@ class GameView {
     if (this.spinSprite && this.spinAnimation) {
       this.spinSprite.visible = false;
       this.spinAnimation.visible = true;
-      this.spinAnimation.x = -2700;
+      this.spinAnimation.x = -1400;
       this.spinAnimation.y = 20;
       this.spinAnimation.scale.set(0.8);
       console.log('Started spin button animation');
@@ -862,6 +927,7 @@ class GameView {
   }
 
   showBonusTotalWin(totalWin, callback) {
+    // Deprecated, replaced by showBonusEndPopup
     callback();
   }
 
@@ -922,7 +988,7 @@ class GameView {
 
     this.spinButton = new PIXI.Container();
     this.spinButton.x = 1100;
-    this.spinButton.y = 650;
+    this.spinButton.y = 610;
     this.spinButton.scale.set(0.3);
     this.spinButton.interactive = true;
     this.spinButton.buttonMode = true;
@@ -931,7 +997,7 @@ class GameView {
     if (this.spinSprite) {
       this.spinSprite.anchor.set(0.5);
       this.spinSprite.x = 40;
-      this.spinSprite.y = 100;
+      this.spinSprite.y = 20;
       this.spinButton.addChild(this.spinSprite);
     }
 
@@ -946,23 +1012,23 @@ class GameView {
 
     this.bonusButton = new PIXI.Graphics();
     this.bonusButton.beginFill(0xFFA500);
-    this.bonusButton.drawRoundedRect(0, 0, 80, 40);
+    this.bonusButton.drawRoundedRect(0, 0, 100, 50, 10);
     this.bonusButton.endFill();
-    this.bonusButton.x = 20;
-    this.bonusButton.y = 70;
+    this.bonusButton.x = 10;
+    this.bonusButton.y = 610;
     this.bonusButton.interactive = true;
     this.bonusButton.buttonMode = true;
     this.bonusButton.on('pointerdown', bonusCallback);
 
     const bonusText = new PIXI.Text('Bonus', {
       fontFamily: 'Arial, sans-serif',
-      fontSize: 16,
+      fontSize: 20,
       fill: 0x000000,
       align: 'center'
     });
     bonusText.anchor.set(0.5);
-    bonusText.x = 40;
-    bonusText.y = 20;
+    bonusText.x = 50;
+    bonusText.y = 25;
     this.bonusButton.addChild(bonusText);
     this.uiContainer.addChild(this.bonusButton);
 
@@ -976,16 +1042,16 @@ class GameView {
       this.themeSelector.appendChild(option);
     });
     this.themeSelector.style.position = 'absolute';
-    this.themeSelector.style.left = `${this.app.view.offsetLeft + 20}px`;
-    this.themeSelector.style.top = `${this.app.view.offsetTop + 30}px`;
-    this.themeSelector.style.width = '120px';
-    this.themeSelector.style.height = '32px';
+    this.themeSelector.style.left = `${this.app.view.offsetLeft + 10}px`;
+    this.themeSelector.style.top = `${this.app.view.offsetTop + 550}px`;
+    this.themeSelector.style.width = '150px';
+    this.themeSelector.style.height = '40px';
     this.themeSelector.style.fontFamily = 'Arial, sans-serif';
-    this.themeSelector.style.fontSize = '14px';
+    this.themeSelector.style.fontSize = '16px';
     this.themeSelector.style.backgroundColor = '#ffffff';
     this.themeSelector.style.border = '2px solid #000000';
     this.themeSelector.style.borderRadius = '5px';
-    this.themeSelector.style.padding = '3px';
+    this.themeSelector.style.padding = '5px';
     this.themeSelector.style.cursor = 'pointer';
     document.body.appendChild(this.themeSelector);
 

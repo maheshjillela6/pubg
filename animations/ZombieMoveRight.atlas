@@ -1,0 +1,125 @@
+
+ZombieMoveRight.png
+size: 1631, 537
+format: RGBA8888
+filter: Linear, Linear
+repeat: none
+Background
+  rotate: true
+  xy: 2, 2
+  size: 533, 800
+  orig: 535, 802
+  offset: 1, 1
+  index: -1
+body
+  rotate: true
+  xy: 804, 242
+  size: 293, 618
+  orig: 318, 620
+  offset: 24, 1
+  index: -1
+eye1
+  rotate: true
+  xy: 804, 3
+  size: 12, 20
+  orig: 12, 20
+  offset: 0, 0
+  index: -1
+eye2
+  rotate: false
+  xy: 1595, 367
+  size: 28, 26
+  orig: 28, 26
+  offset: 0, 0
+  index: -1
+hand(l1)
+  rotate: false
+  xy: 1159, 6
+  size: 148, 156
+  orig: 288, 263
+  offset: 140, 0
+  index: -1
+hand(l2)
+  rotate: false
+  xy: 1068, 3
+  size: 89, 159
+  orig: 301, 380
+  offset: 212, 0
+  index: -1
+hand(l3)
+  rotate: false
+  xy: 1421, 6
+  size: 105, 156
+  orig: 301, 500
+  offset: 152, 0
+  index: -1
+hand(r1)
+  rotate: false
+  xy: 1309, 11
+  size: 56, 87
+  orig: 301, 500
+  offset: 85, 197
+  index: -1
+hand(r2)
+  rotate: true
+  xy: 1309, 100
+  size: 140, 110
+  orig: 301, 500
+  offset: 0, 143
+  index: -1
+hand(r3)
+  rotate: true
+  xy: 952, 168
+  size: 72, 125
+  orig: 330, 500
+  offset: 0, 53
+  index: -1
+head
+  rotate: true
+  xy: 1424, 164
+  size: 127, 168
+  orig: 127, 168
+  offset: 0, 0
+  index: -1
+leg(l1)
+  rotate: true
+  xy: 1424, 293
+  size: 100, 169
+  orig: 330, 580
+  offset: 173, 191
+  index: -1
+leg(l2)
+  rotate: true
+  xy: 1424, 395
+  size: 140, 202
+  orig: 311, 580
+  offset: 171, 0
+  index: -1
+leg(l3)
+  rotate: true
+  xy: 1528, 45
+  size: 117, 101
+  orig: 318, 639
+  offset: 201, 0
+  index: -1
+leg(r1)
+  rotate: false
+  xy: 804, 17
+  size: 146, 223
+  orig: 330, 500
+  offset: 68, 0
+  index: -1
+leg(r2)
+  rotate: false
+  xy: 952, 3
+  size: 114, 159
+  orig: 330, 602
+  offset: 57, 0
+  index: -1
+leg(r3)
+  rotate: false
+  xy: 1079, 182
+  size: 138, 58
+  orig: 330, 580
+  offset: 36, 0
+  index: -1

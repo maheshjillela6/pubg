@@ -1,0 +1,69 @@
+
+WinValue@2x.png
+size: 1384,718
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+BigWin/1 3
+  rotate: true
+  xy: 1183, 557
+  size: 159, 199
+  orig: 159, 200
+  offset: 0, 0
+  index: -1
+BigWin/3
+  rotate: false
+  xy: 717, 53
+  size: 209, 281
+  orig: 251, 318
+  offset: 0, 1
+  index: -1
+Effects/Blast4
+  rotate: true
+  xy: 2, 2
+  size: 714, 713
+  orig: 750, 750
+  offset: 33, 31
+  index: -1
+Effects/Sparkle/Sparkles_03
+  rotate: true
+  xy: 1137, 6
+  size: 128, 126
+  orig: 960, 540
+  offset: 421, 206
+  index: -1
+Effects/Sparkle/Sparkles_04
+  rotate: true
+  xy: 1137, 136
+  size: 132, 136
+  orig: 960, 540
+  offset: 418, 202
+  index: -1
+Effects/Sparkle/Sparkles_05
+  rotate: true
+  xy: 1183, 270
+  size: 138, 146
+  orig: 960, 540
+  offset: 412, 197
+  index: -1
+Effects/Sparkle/Sparkles_06
+  rotate: true
+  xy: 1183, 410
+  size: 145, 147
+  orig: 960, 540
+  offset: 409, 197
+  index: -1
+WinValue/Ambient_Fog
+  rotate: false
+  xy: 717, 336
+  size: 464, 380
+  orig: 547, 436
+  offset: 16, 15
+  index: -1
+WinValue/Glow_2
+  rotate: true
+  xy: 928, 73
+  size: 261, 207
+  orig: 300, 229
+  offset: 20, 10
+  index: -1
