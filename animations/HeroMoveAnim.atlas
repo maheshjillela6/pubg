@@ -1,0 +1,60 @@
+
+HeroMoveAnim.png
+size: 1284, 1579
+format: RGBA8888
+filter: Linear, Linear
+repeat: none
+Hero_BackView
+  rotate: true
+  xy: 115, 857
+  size: 720, 1080
+  orig: 720, 1080
+  offset: 0, 0
+  index: -1
+Hero_FrontView
+  rotate: true
+  xy: 2, 2
+  size: 853, 1280
+  orig: 853, 1280
+  offset: 0, 0
+  index: -1
+fire
+  rotate: false
+  xy: 2, 1474
+  size: 111, 103
+  orig: 111, 103
+  offset: 0, 0
+  index: -1
+
+HeroMoveAnim_2.png
+size: 1284, 1844
+format: RGBA8888
+filter: Linear, Linear
+repeat: none
+a1
+  rotate: true
+  xy: 2, 989
+  size: 853, 1280
+  orig: 853, 1280
+  offset: 0, 0
+  index: -1
+images/images/bullet
+  rotate: false
+  xy: 2, 2
+  size: 1109, 985
+  orig: 1536, 1024
+  offset: 163, 2
+  index: -1
+
+HeroMoveAnim_3.png
+size: 1540, 1028
+format: RGBA8888
+filter: Linear, Linear
+repeat: none
+bullet
+  rotate: false
+  xy: 2, 2
+  size: 1536, 1024
+  orig: 1536, 1024
+  offset: 0, 0
+  index: -1

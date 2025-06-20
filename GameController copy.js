@@ -1,4 +1,4 @@
-class GameController {
+  class GameController {
     constructor() {
       this.model = new GameModel();
       this.view = new GameView();
@@ -29,9 +29,7 @@ class GameController {
         bonusStartTime: 0,
         bullets: [],
         isFiring: false,
-        isDraggingHero: false,
-        rareZombie: null,
-        isRareZombieAnimationPlaying: false
+        isDraggingHero: false
       };
     }
 
@@ -127,8 +125,6 @@ class GameController {
         this.bonusState.lastFireTime = 0;
         this.bonusState.isFiring = false;
         this.bonusState.isDraggingHero = false;
-        this.bonusState.rareZombie = null;
-        this.bonusState.isRareZombieAnimationPlaying = false;
         const success = await this.model.loadBonusAssets();
         if (!success || !this.model.bonusTextures['l'] || !this.model.bonusTextures['zombie']) {
           console.error('Failed to load bonus assets');
@@ -151,7 +147,7 @@ class GameController {
     }
 
     handlePlayerInput(targetX, targetY, isFiring, isDragging) {
-      if (!this.isBonusMode || !this.bonusState.isHeroAlive || this.bonusState.isRareZombieAnimationPlaying) return;
+      if (!this.isBonusMode || !this.bonusState.isHeroAlive) return;
       if (targetX === null || targetY === null) {
         this.bonusState.aimTarget = null;
       } else {
@@ -169,7 +165,7 @@ class GameController {
       if (!this.isBonusMode) {
         this.model.reels.forEach((reel) => reel.update(this.view.app.ticker.deltaMS));
       }
-      if (this.isBonusMode && this.bonusState.isHeroAlive && !this.bonusState.isRareZombieAnimationPlaying) {
+      if (this.isBonusMode && this.bonusState.isHeroAlive) {
         this.updateBonusBattle();
       }
     }
@@ -177,7 +173,6 @@ class GameController {
     updateBonusBattle() {
       if (!this.bonusState.isHeroAlive || !this.bonusState.hero) {
         console.warn('Bonus battle update skipped: Hero is dead or not initialized');
-        this.endBonusFeature(false);
         return;
       }
 
@@ -186,7 +181,7 @@ class GameController {
       // Check ammo first
       if (this.bonusState.ammo <= 0) {
         this.bonusState.isHeroAlive = false;
-        this.endBonusFeature(false);
+        this.endBonusFeature();
         return;
       }
 
@@ -219,7 +214,7 @@ class GameController {
         // Re-check ammo after firing
         if (this.bonusState.ammo <= 0) {
           this.bonusState.isHeroAlive = false;
-          this.endBonusFeature(false);
+          this.endBonusFeature();
           return;
         }
       }
@@ -242,21 +237,10 @@ class GameController {
           if (distance < 30) {
             zombie.energy -= 20;
             if (zombie.energy <= 0) {
-              if (zombie.isRare) {
-                this.bonusState.rareZombie = null;
-                this.bonusState.isRareZombieAnimationPlaying = true;
-                this.view.showZombieReward(zombie.x, zombie.y, () => {
-                  this.bonusState.zombies = [];
-                  this.bonusTotalWin += 100; // Grand win for rare zombie
-                  this.bonusState.isRareZombieAnimationPlaying = false;
-                  this.endBonusFeature(true);
-                });
-              } else {
-                this.bonusTotalWin += this.bonusState.winPerZombie;
-                this.bonusState.ammo += this.bonusState.ammoPerZombie;
-                this.view.updateBonusUI(true, this.bonusState.ammo);
-                this.bonusState.zombies = this.bonusState.zombies.filter(z => z !== zombie);
-              }
+              this.bonusTotalWin += this.bonusState.winPerZombie;
+              this.bonusState.ammo += this.bonusState.ammoPerZombie;
+              this.view.updateBonusUI(true, this.bonusState.ammo);
+              this.bonusState.zombies = this.bonusState.zombies.filter(z => z !== zombie);
             }
             return false;
           }
@@ -285,7 +269,7 @@ class GameController {
         const distance = Math.sqrt(dx * dx + dy * dy);
         if (distance < 30) {
           this.bonusState.isHeroAlive = false;
-          this.endBonusFeature(false);
+          this.endBonusFeature();
           return;
         }
         const speed = zombie.speed * 0.3;
@@ -324,21 +308,13 @@ class GameController {
           y = Math.random() * (playerY - 100);
           break;
       }
-      const isRare = !this.bonusState.rareZombie && Math.random() < 0.05; // 5% chance for rare zombie if none exists
-      const shade = isRare ? 'rare' : Math.random() < 0.5 ? 'shade1' : 'shade2';
-      const zombie = {
+      this.bonusState.zombies.push({
         x,
         y,
         energy: 100,
         speed: 0.5 + Math.random() * 0.5,
-        shade: shade,
-        isRare: isRare
-      };
-      this.bonusState.zombies.push(zombie);
-      if (isRare) {
-        this.bonusState.rareZombie = zombie;
-      }
-      console.log(`Spawned ${isRare ? 'rare ' : ''}zombie (${shade}) at (${x}, ${y})`);
+      });
+      console.log(`Spawned zombie at (${x}, ${y})`);
     }
 
     startSpin(isBonusSpin = false) {
@@ -393,7 +369,7 @@ class GameController {
     startProgressBars() {
       this.heroProgress = 0;
       this.enemyProgress = 0;
-      const duration = 1.5;
+      const duration = 1.5; // Reduced from 3 to 1.5 seconds
       const steps = 60;
       const interval = (duration * 1000) / steps;
 
@@ -433,22 +409,20 @@ class GameController {
       }
     }
 
-    endBonusFeature(success = false) {
+    endBonusFeature() {
       if (!this.isBonusMode) return;
-      console.log(`Ending bonus feature: ${success ? 'Mission Successful' : 'Mission Failed'}`);
+      console.log('Ending bonus feature');
       this.isBonusMode = false;
-      this.view.showBonusEndPopup(this.bonusTotalWin, success ? 'Mission Successful' : 'Mission Failed', () => {
+      this.view.showBonusEndPopup(this.bonusTotalWin, () => {
         this.bonusState.zombies = [];
         this.bonusState.hero = null;
         this.bonusState.ammo = 0;
         this.bonusState.aimTarget = null;
         this.bonusState.bullets = [];
         this.bonusState.bonusStartTime = 0;
-        this.bonusState.rareZombie = null;
-        this.bonusState.isRareZombieAnimationPlaying = false;
         this.view.cleanupBonusBattle();
         this.view.updateBonusUI(false, 0);
         this.view.showSymbols();
       });
     }
-}
+  }

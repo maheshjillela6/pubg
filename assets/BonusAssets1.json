@@ -1,0 +1,28 @@
+{"frames": {
+
+"ZombieReward":
+{
+	"frame": {"x":0,"y":0,"w":205,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":205,"h":307},
+	"sourceSize": {"w":205,"h":307}
+},
+"bullet":
+{
+	"frame": {"x":205,"y":0,"w":1075,"h":717},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1075,"h":717},
+	"sourceSize": {"w":1075,"h":717}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.1",
+	"image": "BonusAssets1.png",
+	"format": "RGBA8888",
+	"size": {"w":1280,"h":717},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:b4c5b5d4a64ab208c98d089bd2f714f3:58c76d70ecf388aa400a809d3dc7d955:5e88db548dd8e540dd83dcbbdff9a71b$"
+}
+}
